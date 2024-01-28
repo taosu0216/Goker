@@ -18,24 +18,38 @@ func main() {
 	// 其中Cloneflags字段设置为syscall.CLONE_NEWUTS。这意味着新进程将拥有自己的UTS命名空间，
 	// 这是Linux内核的一个特性，可以在不同的进程之间隔离某些系统标识符（如主机名）。
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS |
+		Cloneflags:
+		//创建一个新的UTS命名空间，隔离主机名和域名
+		syscall.CLONE_NEWUTS |
+			// 创建一个新的IPC命名空间，隔离System V IPC和POSIX消息队列
 			syscall.CLONE_NEWIPC |
+			//创建一个新的PID命名空间，使得每个命名空间都有自己独立的PID空间
 			syscall.CLONE_NEWPID |
+			//创建一个新的NS命名空间，隔离不同进程的mount点
+			//TODO: 这里有小坑,仅仅确立新的NS命名空间还不能完全隔离不同进程的mount点,还得自己手动设置当前紫禁城的mount挂载点,才能与其他进程隔离
 			syscall.CLONE_NEWNS |
+			//创建一个新的NET命名空间，隔离网络设备、协议栈、端口等网络资源。
 			syscall.CLONE_NEWNET |
+			//创建一个新的用户命名空间，隔离用户和组ID
 			syscall.CLONE_NEWUSER,
 		UidMappings: []syscall.SysProcIDMap{
 			{
+				// 容器的用户ID
 				ContainerID: 1,
-				HostID:      0,
-				Size:        1,
+				// 主机的用户ID
+				HostID: 0,
+				// 映射的ID数量
+				Size: 1,
 			},
 		},
 		GidMappings: []syscall.SysProcIDMap{
 			{
+				// 容器的组ID
 				ContainerID: 1,
-				HostID:      0,
-				Size:        1,
+				// 主机的组ID
+				HostID: 0,
+				// 映射的ID数量
+				Size: 1,
 			},
 		},
 	}
